@@ -68,6 +68,7 @@ UPLOAD_FOLDER="/root"
 ALLOWED_FILENAME="users_backup.volt"
 ALLOWED_EXTENSION=".volt"
 
+# Check if upload folder exists and is writable
 if [ ! -d "$UPLOAD_FOLDER" ]; then
     echo "Content-type: text/html"
     echo ""
@@ -75,25 +76,30 @@ if [ ! -d "$UPLOAD_FOLDER" ]; then
     exit 1
 fi
 
-# Retrieve uploaded file name and extension from CGI parameters
-FILENAME="$HTTP_FILENAME"  # Assuming this is how the filename is passed by lighttpd
+# Ensure correct content type for CGI output
+echo "Content-type: text/html"
+echo ""
+
+# Check if file was uploaded
+if [ ! -f "$HTTP_POST_FILES" ]; then
+    echo "No file uploaded."
+    exit 1
+fi
+
+# Retrieve uploaded file name and extension
+FILENAME=$(basename "$HTTP_POST_FILES")
 FILE_EXTENSION="${FILENAME##*.}"
 
 # Debug output to see what the script receives
-echo "Content-type: text/plain"
-echo ""
 echo "Received file: $FILENAME"
 echo "File extension: $FILE_EXTENSION"
 
 # Check if file name and extension are correct
-if [[ "$FILENAME" == "$ALLOWED_FILENAME" && ".$FILE_EXTENSION" == "$ALLOWED_EXTENSION" ]]; then
+if [[ "$FILENAME" == "$ALLOWED_FILENAME" && "$FILE_EXTENSION" == "volt" ]]; then
+    # Move the uploaded file to the upload folder
     mv "$HTTP_POST_FILES" "$UPLOAD_FOLDER/$FILENAME"
-    echo "Content-type: text/html"
-    echo ""
     echo "File successfully uploaded!"
 else
-    echo "Content-type: text/html"
-    echo ""
     echo "Invalid file. Please upload a .volt file named users_backup.volt"
 fi
 EOF
