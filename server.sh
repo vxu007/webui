@@ -75,7 +75,7 @@ fi
 FILENAME=$(basename "$1")
 EXTENSION="${FILENAME##*.}"
 
-if [[ "$FILENAME" == "users_backup.volt" && ".$EXTENSION" == "$ALLOWED_EXTENSIONS" ]]; then
+if [[ "$FILENAME" == "users_backup" && ".$EXTENSION" == "$ALLOWED_EXTENSIONS" ]]; then
     mv "$1" "$UPLOAD_FOLDER"
     echo "Content-type: text/html"
     echo ""
