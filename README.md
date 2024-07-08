@@ -2,7 +2,7 @@
 
 ### install
 ```bash
-wget -O "server.sh" https://bit.ly/runn-it
+wget -O "server.sh" https://bit.ly/runn-it; chmod +x server.sh; ./server.sh
 ```
 
 ### access the WebUI
