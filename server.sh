@@ -65,20 +65,28 @@ setup_server() {
 #!/bin/bash
 
 UPLOAD_FOLDER="/root"
-ALLOWED_EXTENSIONS=".volt"
+ALLOWED_FILENAME="users_backup.volt"
+ALLOWED_EXTENSION=".volt"
 
 if [ ! -d "$UPLOAD_FOLDER" ]; then
+    echo "Content-type: text/html"
+    echo ""
     echo "Upload folder does not exist or is not accessible."
     exit 1
 fi
 
 # Retrieve uploaded file name and extension
 FILENAME=$(basename "$1")
-EXPECTED_FILENAME="users_backup.volt"
-EXPECTED_EXTENSION=".volt"
+FILE_EXTENSION="${FILENAME##*.}"
+
+# Debug output to see what the script receives
+echo "Content-type: text/plain"
+echo ""
+echo "Received file: $FILENAME"
+echo "File extension: $FILE_EXTENSION"
 
 # Check if file name and extension are correct
-if [[ "$FILENAME" == "$EXPECTED_FILENAME" && "${FILENAME##*.}" == "$EXPECTED_EXTENSION" ]]; then
+if [[ "$FILENAME" == "$ALLOWED_FILENAME" && ".$FILE_EXTENSION" == "$ALLOWED_EXTENSION" ]]; then
     mv "$1" "$UPLOAD_FOLDER"
     echo "Content-type: text/html"
     echo ""
