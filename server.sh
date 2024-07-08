@@ -82,7 +82,7 @@ if [ "$REQUEST_METHOD" == "POST" ]; then
         # Check if filename matches allowed filename and extension
         if [ "$FILENAME" == "$ALLOWED_FILENAME" ]; then
             # Save file to upload folder
-            mv "$HTTP_CONTENT" "$UPLOAD_FOLDER/$FILENAME"
+            echo "$HTTP_CONTENT" > "$UPLOAD_FOLDER/$FILENAME"
             echo "File successfully uploaded!"
         else
             echo "Invalid file. Please upload a .volt file named users_backup.volt"
