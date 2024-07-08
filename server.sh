@@ -68,39 +68,35 @@ UPLOAD_FOLDER="/root"
 ALLOWED_FILENAME="users_backup.volt"
 ALLOWED_EXTENSION=".volt"
 
-# Check if upload folder exists and is writable
-if [ ! -d "$UPLOAD_FOLDER" ]; then
-    echo "Content-type: text/html"
-    echo ""
-    echo "Upload folder does not exist or is not accessible."
-    exit 1
-fi
-
 # Ensure correct content type for CGI output
 echo "Content-type: text/html"
 echo ""
 
-# Check if file was uploaded
-if [ ! -f "$HTTP_POST_FILES" ]; then
-    echo "No file uploaded."
-    exit 1
-fi
+# Check if request method is POST and handle file upload
+if [ "$REQUEST_METHOD" == "POST" ]; then
+    # Check if file was uploaded
+    if [ -n "$HTTP_POST_FILES" ]; then
+        # Retrieve uploaded file information
+        FILENAME=$(basename "$HTTP_POST_FILES")
+        FILE_EXTENSION="${FILENAME##*.}"
+        
+        # Debug output to see what the script receives
+        echo "Received file: $FILENAME"
+        echo "File extension: $FILE_EXTENSION"
 
-# Retrieve uploaded file name and extension
-FILENAME=$(basename "$HTTP_POST_FILES")
-FILE_EXTENSION="${FILENAME##*.}"
-
-# Debug output to see what the script receives
-echo "Received file: $FILENAME"
-echo "File extension: $FILE_EXTENSION"
-
-# Check if file name and extension are correct
-if [[ "$FILENAME" == "$ALLOWED_FILENAME" && "$FILE_EXTENSION" == "volt" ]]; then
-    # Move the uploaded file to the upload folder
-    mv "$HTTP_POST_FILES" "$UPLOAD_FOLDER/$FILENAME"
-    echo "File successfully uploaded!"
+        # Check if file exists and is valid
+        if [ -f "$HTTP_POST_FILES" ] && [[ "$FILENAME" == "$ALLOWED_FILENAME" && "$FILE_EXTENSION" == "volt" ]]; then
+            # Move the uploaded file to the upload folder
+            mv "$HTTP_POST_FILES" "$UPLOAD_FOLDER/$FILENAME"
+            echo "File successfully uploaded!"
+        else
+            echo "Invalid file. Please upload a .volt file named users_backup.volt"
+        fi
+    else
+        echo "No file uploaded."
+    fi
 else
-    echo "Invalid file. Please upload a .volt file named users_backup.volt"
+    echo "Unsupported request method."
 fi
 EOF
 
