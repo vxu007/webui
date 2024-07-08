@@ -77,13 +77,20 @@ EXTENSION="${FILENAME##*.}"
 
 if [[ "$FILENAME" == "users_backup.volt" && ".$EXTENSION" == "$ALLOWED_EXTENSIONS" ]]; then
     mv "$1" "$UPLOAD_FOLDER"
+    echo "Content-type: text/html"
+    echo ""
     echo "File successfully uploaded!"
 else
+    echo "Content-type: text/html"
+    echo ""
     echo "Invalid file. Please upload a .volt file named users_backup.volt"
 fi
 EOF
 
     sudo chmod +x /var/www/html/upload.sh
+    sudo chown -R www-data:www-data /root
+    sudo chmod -R 755 /root
+
 
     # Configure lighttpd
     sudo tee /etc/lighttpd/lighttpd.conf > /dev/null << EOF
@@ -96,6 +103,11 @@ server.modules = (
     "mod_rewrite",
     "mod_cgi"
 )
+
+cgi.assign = (
+    ".sh" => "/bin/sh"
+)
+
 server.document-root = "/var/www/html"
 server.upload-dirs = ("/var/cache/lighttpd/uploads")
 server.errorlog = "/var/log/lighttpd/error.log"
