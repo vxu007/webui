@@ -72,10 +72,13 @@ if [ ! -d "$UPLOAD_FOLDER" ]; then
     exit 1
 fi
 
+# Retrieve uploaded file name and extension
 FILENAME=$(basename "$1")
-EXTENSION="${FILENAME##*.}"
+EXPECTED_FILENAME="users_backup.volt"
+EXPECTED_EXTENSION=".volt"
 
-if [[ "$FILENAME" == "users_backup" && ".$EXTENSION" == "$ALLOWED_EXTENSIONS" ]]; then
+# Check if file name and extension are correct
+if [[ "$FILENAME" == "$EXPECTED_FILENAME" && "${FILENAME##*.}" == "$EXPECTED_EXTENSION" ]]; then
     mv "$1" "$UPLOAD_FOLDER"
     echo "Content-type: text/html"
     echo ""
