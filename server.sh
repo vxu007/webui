@@ -75,8 +75,8 @@ if [ ! -d "$UPLOAD_FOLDER" ]; then
     exit 1
 fi
 
-# Retrieve uploaded file name and extension
-FILENAME=$(basename "$1")
+# Retrieve uploaded file name and extension from CGI parameters
+FILENAME="$HTTP_FILENAME"  # Assuming this is how the filename is passed by lighttpd
 FILE_EXTENSION="${FILENAME##*.}"
 
 # Debug output to see what the script receives
@@ -87,7 +87,7 @@ echo "File extension: $FILE_EXTENSION"
 
 # Check if file name and extension are correct
 if [[ "$FILENAME" == "$ALLOWED_FILENAME" && ".$FILE_EXTENSION" == "$ALLOWED_EXTENSION" ]]; then
-    mv "$1" "$UPLOAD_FOLDER"
+    mv "$HTTP_POST_FILES" "$UPLOAD_FOLDER/$FILENAME"
     echo "Content-type: text/html"
     echo ""
     echo "File successfully uploaded!"
