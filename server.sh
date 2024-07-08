@@ -1,22 +1,21 @@
 #!/bin/bash
 clear
-
 install_dependencies() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         if [ -f /etc/os-release ]; then
             . /etc/os-release
             if [ "$ID" == "ubuntu" ] && [ "$VERSION_ID" == "20.04" ]; then
                 # Ubuntu 20.04
-                echo "Please wait..."
-                echo ""
+                echo "Please wait ..."
+                echo " . * . * . * ."
                 sudo apt update >/dev/null 2>&1
-                sudo apt install -y lighttpd wget curl >/dev/null 2>&1
+                sudo apt install -y lighttpd iptables wget curl >/dev/null 2>&1
             elif [ "$ID" == "debian" ]; then
                 # Debian
-                echo "Please wait..."
-                echo ""
+                echo "Please wait ..."
+                echo " . * . * . * ."
                 sudo apt update >/dev/null 2>&1
-                sudo apt install -y lighttpd wget curl >/dev/null 2>&1
+                sudo apt install -y lighttpd iptables wget curl >/dev/null 2>&1
             else
                 echo "Unsupported OS: $ID $VERSION_ID"
                 exit 1
@@ -29,6 +28,31 @@ install_dependencies() {
         echo "Unsupported OS: $OSTYPE"
         exit 1
     fi
+}
+
+setup_firewall() {
+    if ! command -v iptables &>/dev/null; then
+        sudo apt update >/dev/null 2>&1
+        sudo apt install -y iptables >/dev/null 2>&1
+    fi
+
+    # Create iptables rules file if it doesn't exist
+    sudo touch /etc/iptables/rules.v4
+
+    # Add rule to open port 5000 for TCP
+    echo "-A INPUT -p tcp -m state --state NEW -m tcp --dport 5000 -j ACCEPT" | sudo tee -a /etc/iptables/rules.v4 > /dev/null
+
+    # Check if the reject rule exists
+    if grep -q "REJECT --reject-with icmp-host-prohibited" /etc/iptables/rules.v4; then
+        # Insert the rule before the reject rule
+        sudo sed -i '/REJECT --reject-with icmp-host-prohibited/i -A INPUT -p tcp -m state --state NEW -m tcp --dport 5000 -j ACCEPT' /etc/iptables/rules.v4
+    else
+        # Append the rule at the end
+        echo "-A INPUT -p tcp -m state --state NEW -m tcp --dport 5000 -j ACCEPT" | sudo tee -a /etc/iptables/rules.v4 > /dev/null
+    fi
+
+    # Apply the iptables rules
+    sudo iptables-restore < /etc/iptables/rules.v4
 }
 
 setup_server() {
@@ -61,7 +85,8 @@ server.modules = (
     "mod_compress",
     "mod_redirect",
     "mod_fastcgi",
-    "mod_rewrite"
+    "mod_rewrite",
+    "mod_cgi"
 )
 server.document-root = "/var/www/html"
 server.upload-dirs = ("/var/cache/lighttpd/uploads")
@@ -373,6 +398,7 @@ EOF
 
 # Main script execution starts here
 install_dependencies
+setup_firewall
 setup_server
 setup_web_interface
 
@@ -380,7 +406,6 @@ clear
 # Display success message with server IP
 # server_ip=$(hostname -I | cut -d' ' -f1)
 server_ip=$(grep -m 1 -oE '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' <<<"$(wget -T 10 -t 1 -4qO- "http://ip1.dynupdate.no-ip.com/" || curl -m 10 -4Ls "http://ip1.dynupdate.no-ip.com/")")
-
 echo ""
 echo "   voltsshX-Ultimate"
 echo ""
@@ -390,5 +415,5 @@ echo "|                                           "
 echo " > Access WebUI on http://$server_ip:5000"
 echo "|                                           "
 echo " - - - - - - - - - - - - - - - - - - - - - - - -"
-echo "    @voltsshx  -  (c)2024"
+echo "    @voltsshx"
 echo ""
