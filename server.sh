@@ -1,5 +1,6 @@
 #!/bin/bash
 clear
+
 install_dependencies() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         if [ -f /etc/os-release ]; then
@@ -62,8 +63,15 @@ setup_server() {
     # Create upload script
     cat << 'EOF' | sudo tee /var/www/html/upload.sh > /dev/null
 #!/bin/bash
+
 UPLOAD_FOLDER="/root"
 ALLOWED_EXTENSIONS=".volt"
+
+if [ ! -d "$UPLOAD_FOLDER" ]; then
+    echo "Upload folder does not exist or is not accessible."
+    exit 1
+fi
+
 FILENAME=$(basename "$1")
 EXTENSION="${FILENAME##*.}"
 
@@ -113,7 +121,8 @@ mimetype.assign = (
 )
 
 url.rewrite-once = (
-    "^/upload$" => "/upload.sh"
+    "^/upload$" => "/upload.sh",
+    "^/upload/(.*)" => "/upload.sh?$1"
 )
 
 static-file.exclude-extensions = (".sh")
