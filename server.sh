@@ -75,25 +75,20 @@ echo ""
 # Check if request method is POST and handle file upload
 if [ "$REQUEST_METHOD" == "POST" ]; then
     # Check if file was uploaded
-    if [ -n "$HTTP_POST_FILES" ]; then
-        # Retrieve uploaded file information
-        FILENAME=$(basename "$HTTP_POST_FILES")
-        FILE_EXTENSION="${FILENAME##*.}"
-        
-        # Debug output to see what the script receives
-        echo "Received file: $FILENAME"
-        echo "File extension: $FILE_EXTENSION"
+    if [ "$HTTP_CONTENT_DISPOSITION" ] && [ "$HTTP_CONTENT_TYPE" == "application/octet-stream" ]; then
+        # Extract filename from content disposition header
+        FILENAME=$(echo "$HTTP_CONTENT_DISPOSITION" | grep -o 'filename=".*"' | sed 's/filename=//' | tr -d '"')
 
-        # Check if file exists and is valid
-        if [ -f "$HTTP_POST_FILES" ] && [[ "$FILENAME" == "$ALLOWED_FILENAME" && "$FILE_EXTENSION" == "volt" ]]; then
-            # Move the uploaded file to the upload folder
-            mv "$HTTP_POST_FILES" "$UPLOAD_FOLDER/$FILENAME"
+        # Check if filename matches allowed filename and extension
+        if [ "$FILENAME" == "$ALLOWED_FILENAME" ]; then
+            # Save file to upload folder
+            mv "$HTTP_CONTENT" "$UPLOAD_FOLDER/$FILENAME"
             echo "File successfully uploaded!"
         else
             echo "Invalid file. Please upload a .volt file named users_backup.volt"
         fi
     else
-        echo "No file uploaded."
+        echo "No file uploaded or invalid file format."
     fi
 else
     echo "Unsupported request method."
